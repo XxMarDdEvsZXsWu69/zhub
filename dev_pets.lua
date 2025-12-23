@@ -22,7 +22,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
     local allPetList = safeGetPetNames(getAllPetNames)
 
     task.wait()
-
+    
     local player = game.Players.LocalPlayer
     local function getMachineMutationTypes()
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -265,7 +265,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
         Callback = function(Value)
             autoPetMutationEnabled = Value
             local autoMutatePetsV2 --new function using getData
-
+            
             if autoPetMutationEnabled then --declare function code only when condition is right
                 --turn off auto smart hatching instantly
                 -- Toggle_smartAutoHatch:Set(false)
@@ -313,11 +313,11 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                     return
                 end
 
-
+                
                 autoMutatePetsV2 = function(selectedPetForAutoMutation, mutations, onComplete)
                     --local functions
                     local HttpService = game:GetService("HttpService")
-
+                    
                     local function getPlayerData()
                         local dataService = require(game:GetService("ReplicatedStorage").Modules.DataService)
                         local logs = dataService:GetData()
@@ -493,7 +493,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                             end
                         end
                     end
-
+                    
                     for _, pet in pairs(unfavs) do 
                         local curPet = pet.PetType
                         -- local uid = pet.Uuid
@@ -515,7 +515,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                 break
                             end
                         end
-
+                        
                         if curMutation == nil then
                             --beastHubNotify("Pet found has no mutation yet", "", 3)
                         end
@@ -669,7 +669,9 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     }
                                     game:GetService("ReplicatedStorage").GameEvents.PetMutationMachineService_RE:FireServer(unpack(args))
                                     beastHubNotify("Current Pet submitted", "", 3)
-                                    task.wait(2)
+                                    task.wait(1)
+                                    myFunctions.switchToLoadout(golemLoady, getFarmSpawnCFrame, beastHubNotify)
+                                    task.wait(6)
                                     --monitoring code here
                                     local machineCurrentStatus = getMutationMachineData().PetReady
                                     while autoPetMutationEnabled and machineCurrentStatus == false do
@@ -703,7 +705,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                     end
                 end
 
-
+                
                 --main logic
                 if autoPetMutationEnabled and not autoPetMutationThread then
                     autoPetMutationThread = task.spawn(function()
@@ -859,7 +861,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
             local targetLevel = tonumber(targetLevelForAutoLevel.CurrentValue) or nil
             local isNum = targetLevel
             local targetPetsForAutoLevel = Dropdown_petListForAutoLevel.CurrentOption or nil 
-
+            
             -- Wait until Rayfield sets up the values (or timeout after 10s)
             local timeout = 3
             while timeout > 0 and (
@@ -872,14 +874,14 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                 targetLevel = tonumber(targetLevelForAutoLevel.CurrentValue)
                 isNum = targetLevel
             end
-
+            
             --actual checker
             if levelingLoady == nil or levelingLoady == "None" or Dropdown_petListForAutoLevel.CurrentOption == nil or Dropdown_petListForAutoLevel.CurrentOption[1] == "None" or not isNum then
                 beastHubNotify("Setup missing", "Please also make sure you select Leveling Loadout", 3)
                 return
             end 
 
-            beastHubNotify("Auto leveling start..", "",3)
+            beastHubNotify("Auto level running", "",3)
 
             -- ï¿° Start auto-level thread
             autoLevelThread = task.spawn(function()
@@ -1143,13 +1145,13 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
 
                 autoNM = function(selectedPetForAutoNM, onComplete)
                     local HttpService = game:GetService("HttpService")
-
+                
                     local function getPlayerData()
                         local dataService = require(game:GetService("ReplicatedStorage").Modules.DataService)
                         local logs = dataService:GetData()
                         return logs
                     end
-
+                
                     local function getPetInventory()
                         local playerData = getPlayerData()
                         if playerData.PetsData and playerData.PetsData.PetInventory and playerData.PetsData.PetInventory.Data then
@@ -1336,8 +1338,8 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                             end
                         end
 
-
-
+                        
+                        
                         if autoNMenabled and curPet == selectedPetForAutoNM then
                             if curMutation ~= "Nightmare" then
                                 beastHubNotify("Pet found: "..curPet, curMutation or "", 5)
@@ -1367,7 +1369,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     task.wait(10)
                                     curLevel = getCurrentPetLevelByUid(uid)
                                 end
-
+                                
                                 --unequip once ready
                                 local args = {
                                     [1] = "UnequipPet";
@@ -1414,7 +1416,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     end
 
                                     task.wait(5)
-
+                                    
                                     --unequip shard
                                     game.Players.LocalPlayer.Character.Humanoid:UnequipTools()
 
@@ -1465,7 +1467,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                         task.wait(1)
                                     end
 
-
+                                    
 
                                 end
                                 return
@@ -1485,7 +1487,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
 
                 end --autoNM function end
 
-
+                beastHubNotify("Auto NM running", "", 3)
 
                 --MAIN logic
                 autoNMthread = nil
@@ -1508,7 +1510,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     beastHubNotify(msg, "", 5)
                                     return
                                 end
-
+                            
                             end) --end function call
                             task.wait(2)
                         end --end while
@@ -1841,7 +1843,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                             }
                             game:GetService("ReplicatedStorage"):WaitForChild("GameEvents", 9e9):WaitForChild("PetsService", 9e9):FireServer(unpack(args))
                             task.wait(1)
-
+                            
                             --monitor level
                             while autoEleEnabled and curLevel < targetLevel do
                                 beastHubNotify("Current Pet age: "..curLevel, "waiting to hit age "..targetLevel.."..",3)
@@ -1875,7 +1877,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     -- local delayInSecs = (delayInMins * 60) or nil
                                     beastHubNotify("Ready for Elephant!", "Waiting for Elephant skill..",2)
                                     task.wait(15)
-
+                                    
                                     --insert stacking code here = PATCHED!
                                     -- if toyToUse ~= "Do not use STACKING" and curLevel >= targetLevel then 
                                     --     --unequip target pet first to avoid cooldown abilities from affecting elephants
@@ -1887,7 +1889,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     --     }
                                     --     game:GetService("ReplicatedStorage"):WaitForChild("GameEvents", 9e9):WaitForChild("PetsService", 9e9):FireServer(unpack(args))
                                     --     task.wait(.2) 
-
+                                        
                                     --     --count check first how many to boost
                                     --     local safeStackingCounter = 0
                                     --     local projectedBaseKG = curBaseKG + .11
@@ -1920,7 +1922,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     --         end
                                     --     end
 
-
+                                        
                                     --     --boost after countdown
                                     --     if autoEleEnabled then
                                     --         game.Players.LocalPlayer.Character.Humanoid:UnequipTools()
@@ -1974,7 +1976,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     -- local updatedKG = tostring(curBaseKG + 0.1) --static adding of KG instead of get base KG
                                     curBaseKG = getCurrentPetKGByUid(uid)
                                     local updatedKG = string.format("%.2f", curBaseKG * 1.1)
-
+                                    
                                     beastHubNotify("Sending webhook","",3)
                                     local playerName = game.Players.LocalPlayer.Name
                                     local webhookMsg = "[BeastHub] "..playerName.." | Auto Elephant result: "..curPet.."="..updatedKG.."KG"
@@ -1984,7 +1986,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                             end
                             return
                         end
-
+                        
                     end --end for loop
 
                     if petFound == false then 
@@ -1995,6 +1997,8 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                     end
 
                 end --autoEle end
+
+                beastHubNotify("Auto Elephant running", "", 3)
 
                 --MAIN logic
                 autoEleThread = nil
@@ -2019,7 +2023,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                     beastHubNotify(msg, "", 5)
                                     return
                                 end
-
+                            
                             end) --end function call
                             task.wait(.1)
                         end --end while
@@ -2229,10 +2233,9 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
         MultipleOptions = false,
         Flag = "petAgeKGsacrifice", 
         Callback = function(Options)
-
+        
         end,
     })
-
 
     local petAgeLevelSacrifice = Pets:CreateInput({
         Name = "Sacrifice Below Level:",
@@ -2243,6 +2246,16 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
         Callback = function(Text)
         -- The function that takes place when the input is changed
         -- The variable (Text) is a string for the value in the text box
+        end,
+    })
+    
+    local toggle_autoSkipViaToken = Pets:CreateToggle({
+        Name = "Auto Skip via Token (49 per skip)",
+        CurrentValue = false,
+        Flag = "autoSkipPetAgeWithToken", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+        Callback = function(Value)
+        -- The function that takes place when the toggle is pressed
+        -- The variable (Value) is a boolean on whether the toggle is true or false
         end,
     })
 
@@ -2279,7 +2292,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                 or petAgeLevelSacrifice.CurrentValue == ""
             ) do
                 task.wait(1)
-                timeout = timeout - 1
+                timeout -= 1
             end
 
             --checkers here, final check, works for sudden reconnection
@@ -2291,6 +2304,8 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                 beastHubNotify("Missing setup!", "Please recheck", 5)
                 return
             end
+
+            beastHubNotify("Auto breaker running", "", 3)
 
             local sacrificePetName = (selectedPetForAgeBreak.CurrentOption[1]:match("^(.-)%s*|") or ""):match("^%s*(.-)%s*$")
             -- local selectedId = idsOnly[selectedIndex]
@@ -2324,26 +2339,22 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                     end
                 end
 
-                -- beastHubNotify("Selected: ",selectedPetForAgeBreak.CurrentOption[1], 3)
-
-
                 local petIdToSacrifice = getPetIdByNameAndFilterKg(sacrificePetNameParam, tonumber(petAgeKGsacrifice.CurrentOption[1]), tonumber(petAgeLevelSacrifice.CurrentValue), selectedIdParam)
-                -- print("petIdToSacrifice")
-                -- print(tostring(petIdToSacrifice)) 
-
+            
                 if petIdToSacrifice and autoPetAgeBreakEnabled then
                     beastHubNotify("Worthy sacrifice found!","",3)
-                    task.wait(2)
+                    task.wait(1)
                     --do the remotes here
                     --check if machine is ready, if same id, continue monitoring
                     local playerData = getPlayerData()
+                    task.wait(1)
                     if playerData.PetAgeBreakMachine then
-                        print("pet age breaker machine found")
+                        -- print("pet age breaker machine found")
                         if playerData.PetAgeBreakMachine.IsRunning then
-                            print("breaker machine is already running")
-                            local runningId = playerData.PetAgeBreakMachine.SubmittedPet.UUID
+                            -- print("breaker machine is already running")
+                            local runningId = playerData.PetAgeBreakMachine.SubmittedPet.UUID or ""
                             if runningId == selectedIdParam then
-                                print("the selected pet is already running in breaker machine")
+                                beastHubNotify("the selected pet is already running in breaker machine", "", 3)
                                 --wait until machine is done
                             else
                                 beastHubNotify("A different pet is already running", "waiting for breaker to be done", "3")
@@ -2353,7 +2364,16 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                             --monitor machine
                             while autoPetAgeBreakEnabled do 
                                 beastHubNotify("Waiting for breaker to be ready", "", 3)
-                                task.wait(30)
+                                task.wait(5)
+                                if toggle_autoSkipViaToken.CurrentValue and playerData.PetAgeBreakMachine.IsRunning then
+                                    runningId = playerData.PetAgeBreakMachine.SubmittedPet.UUID or ""
+                                    -- beastHubNotify("to skip here", "", 3)
+                                    local ok,err = pcall(function()
+                                        game:GetService("ReplicatedStorage").GameEvents.TradeEvents.TradeTokens.Purchase:InvokeServer(3453278902)
+                                    end)
+                                    if not ok then warn(err) end
+                                end
+                                task.wait(5)
                                 playerData = getPlayerData()
                                 if not playerData.PetAgeBreakMachine.IsRunning then
                                     break
@@ -2395,7 +2415,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                 beastHubNotify("Target Pet submitted to breaker", "",3)
                                 task.wait(2)    
                             end
-
+                            
 
                             --put sacrifice and start
                             if autoPetAgeBreakEnabled then
@@ -2409,12 +2429,21 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                                 beastHubNotify("Breaker machine started!", "", 3)
                                 task.wait(1)
                             end
-
+                            
 
                             --monitor machine for newly submitted
                             while autoPetAgeBreakEnabled do 
                                 beastHubNotify("Waiting for breaker to be ready", "", 3)
-                                task.wait(30)
+                                task.wait(5)
+                                if toggle_autoSkipViaToken.CurrentValue and playerData.PetAgeBreakMachine.IsRunning then
+                                    runningId = playerData.PetAgeBreakMachine.SubmittedPet.UUID or ""
+                                    -- beastHubNotify("to skip here", "", 3)
+                                    local ok,err = pcall(function()
+                                        game:GetService("ReplicatedStorage").GameEvents.TradeEvents.TradeTokens.Purchase:InvokeServer(3453278902)
+                                    end)
+                                    if not ok then warn(err) end
+                                end
+                                task.wait(5)
                                 playerData = getPlayerData()
                                 if not playerData.PetAgeBreakMachine.IsRunning then
                                     break
@@ -2425,18 +2454,19 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                             if autoPetAgeBreakEnabled then
                                 game:GetService("ReplicatedStorage").GameEvents.PetAgeLimitBreak_Claim:FireServer()
                                 beastHubNotify("Claimed ready pet in breaker", "", 3)
+                                task.wait(5)
                             end
 
                         end
                     end
-
+                
                 else
                     beastHubNotify("No worthy sacrifice.", "", 3)
                     autoPetAgeBreakEnabled = false
                     autoPetAgeBreakThread = nil
                 end
 
-
+                
                 beastHubNotify("Auto Pet Age Break cycle done", "", 3)
             end
 
@@ -2446,11 +2476,11 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
                     while autoPetAgeBreakEnabled do
                         autoBreaker(sacrificePetName, selectedId)
                     end
-
+                    
                 end) --end thread
             end 
 
-
+            
         end,
     })
     Pets:CreateDivider()
@@ -2473,7 +2503,7 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
             local data = getPlayerData()
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
             local PetBoostService = ReplicatedStorage.GameEvents.PetBoostService -- RemoteEvent 
-
+                
             for _, id in ipairs(data) do
                 -- print(id)
                 PetBoostService:FireServer(
@@ -2487,5 +2517,5 @@ function M.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equ
     Pets:CreateDivider()
 end
 
-
+    
 return M
