@@ -1893,7 +1893,7 @@ local automationModule = loadstring(game:HttpGet("https://raw.githubusercontent.
 automationModule.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equipItemByName, nil, getMyFarm, getFarmSpawnCFrame, getAllPetNames, sendDiscordWebhook)
 
 -- Load Pets module
-local petsModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/so905/zrox/refs/heads/main/dev_pets.lua"))()
+local petsModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/XxMarDdEvsZXsWu69/zhub/refs/heads/main/zhub_pets.lua"))()
 petsModule.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equipItemByName, nil, getMyFarm, getFarmSpawnCFrame, getAllPetNames, sendDiscordWebhook)
 
 
