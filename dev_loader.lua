@@ -1168,9 +1168,10 @@ local function autoSellPets(targetPets, weightTargetBelow, onComplete)
     end
 
     for _, item in ipairs(backpack:GetChildren()) do
-        if item:IsA("Tool") then
-            local b = item:GetAttribute("b") -- pet type
-            local d = item:GetAttribute("d") -- favorite
+        if not item:IsA("Tool") then continue end
+
+        local b = item:GetAttribute("b") -- pet type
+        local d = item:GetAttribute("d") -- favorite
 
         if b == "l" and d == false then
             local petName = item.Name:match("^(.-)%s*%[") or item.Name
@@ -1207,7 +1208,6 @@ local function autoSellPets(targetPets, weightTargetBelow, onComplete)
                     task.wait(delayToSellPets)
                 end
             end
-        end
         end
     end
 
@@ -1889,11 +1889,11 @@ end
 
 -- ================== LOAD SEPARATED MODULES ==================
 -- Load Automation module
-local automationModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/XxMarDdEvsZXsWu69/zhub/refs/heads/main/dev_automation.lua"))()
+local automationModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/Adobo1/Testing/refs/heads/main/Zhub_Automation2.lua"))()
 automationModule.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equipItemByName, nil, getMyFarm, getFarmSpawnCFrame, getAllPetNames, sendDiscordWebhook)
 
 -- Load Pets module
-local petsModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/XxMarDdEvsZXsWu69/zhub/refs/heads/main/dev_pets.lua"))()
+local petsModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/Adobo1/Testing/refs/heads/main/Zhub_pets.lua"))()
 petsModule.init(Rayfield, beastHubNotify, Window, myFunctions, beastHubIcon, equipItemByName, nil, getMyFarm, getFarmSpawnCFrame, getAllPetNames, sendDiscordWebhook)
 
 
@@ -1947,179 +1947,142 @@ local Toggle_bhubESP = PetEggs:CreateToggle({
             bhubESPthread = task.spawn(function()
                 beastHubNotify("ESP enabled", "", 1)
                 while bhubESPenabled do
-                    -- beastHubNotify("ESP running...", "", 1)
+                    -- Always fetch FRESH data every iteration (no caching)
                     local eggEspData = {} --final table storage
 
                     -- Get all PetEgg models in your farm
                     local petEggs = myFunctions.getMyFarmPetEggs()
-                    local withEspCount = 0
-                    -- ✅ Check if ESP is already applied to ALL eggs
-                    local allHaveESP = false
-                    for _, egg in ipairs(petEggs) do
-                        if egg:FindFirstChild("BhubESP") then
-                            withEspCount = withEspCount + 1
-                        end
-                    end
-
-                    -- print("withEspCount")
-                    -- print(withEspCount)
-                    -- print("#petEggs")
-                    -- print(#petEggs)
-
-                    if withEspCount == #petEggs then
-                        allHaveESP = true
-                    end
-
-                    -- ✅ If every egg already has ESP, skip heavy processing
-                    if allHaveESP then
-                        -- print("stopped ESP checking, all have ESP already")
-                        task.wait(2)
-                    else
-                        -- print("waiting or ESP folder for some eggs")
-                    end
 
                     if #petEggs == 0 then
                         --print("[BeastHub] No PetEggs found in your farm!")
+                        task.wait(1)
                         return
-                    else
-                        --process get data here
-                        local function getPlayerData()
-                            local dataService = require(game:GetService("ReplicatedStorage").Modules.DataService)
-                            local logs = dataService:GetData()
-                            return logs
+                    end
+
+                    -- Always refresh data - don't skip even if all have ESP
+                    local function getPlayerData()
+                        local dataService = require(game:GetService("ReplicatedStorage").Modules.DataService)
+                        local logs = dataService:GetData()
+                        return logs
+                    end
+
+                    local function getSaveSlots()
+                        local playerData = getPlayerData()
+                        if playerData and playerData.SaveSlots then
+                            return playerData.SaveSlots
+                        else
+                            warn("SaveSlots not found!")
+                            return nil
                         end
+                    end
 
-                        local function getSaveSlots()
-                            local playerData = getPlayerData()
-                            if playerData.SaveSlots then
-                                return playerData.SaveSlots
-                            else
-                                warn("SaveSlots not found!")
-                                return nil
-                            end
-                        end
-
-
-
-                        local saveSlots = getSaveSlots()
+                    -- Fetch FRESH data on every iteration
+                    local saveSlots = getSaveSlots()
+                    if saveSlots then
                         local selectedSlot = saveSlots.SelectedSlot
-                        -- print("selectedSlot")
-                        -- print(selectedSlot)
                         local allSlots = saveSlots.AllSlots
-                        -- print("allSlots good")
-                        for slot, slotData in pairs(allSlots) do
-                            local slotNameString = tostring(slot)
-                            -- print("slotNameString")
-                            -- print(slotNameString)
-                            if slotNameString == selectedSlot then
-                                local savedObjects = slotData.SavedObjects
-                                for objName, ObjData in pairs(savedObjects) do
-                                    local objType = ObjData.ObjectType
-                                    if objType == "PetEgg" then
-                                        local eggData = ObjData.Data
-                                        local timeToHatch = eggData.TimeToHatch or 0
-                                        if timeToHatch == 0 then
-                                            local petName = eggData.RandomPetData.Name
-                                            local petKG = string.format("%.2f", eggData.BaseWeight * 1.1)
-                                            -- beastHubNotify("Found!", petName.."|"..petKG, 1)
-                                            local entry = {
-                                                Uid = objName,
-                                                PetName = petName,
-                                                PetKG = petKG
-                                            }
-                                            table.insert(eggEspData, entry)
+                        if allSlots and selectedSlot then
+                            for slot, slotData in pairs(allSlots) do
+                                local slotNameString = tostring(slot)
+                                if slotNameString == selectedSlot then
+                                    local savedObjects = slotData.SavedObjects
+                                    if savedObjects then
+                                        for objName, ObjData in pairs(savedObjects) do
+                                            local objType = ObjData.ObjectType
+                                            if objType == "PetEgg" then
+                                                local eggData = ObjData.Data
+                                                local timeToHatch = eggData.TimeToHatch or 0
+                                                -- INCLUDE ALL EGGS, ready or not (check their status)
+                                                if eggData.RandomPetData then
+                                                    local petName = eggData.RandomPetData.Name
+                                                    local petKG = string.format("%.2f", eggData.BaseWeight * 1.1)
+                                                    local entry = {
+                                                        Uid = objName,
+                                                        PetName = petName,
+                                                        PetKG = petKG,
+                                                        TimeToHatch = timeToHatch
+                                                    }
+                                                    table.insert(eggEspData, entry)
+                                                end
+                                            end
                                         end
                                     end
                                 end
                             end
                         end
-                        -- beastHubNotify("selectedSlot", selectedSlot, 3)
                     end
 
-                    -- Loop through all to get data
+                    -- Loop through all eggs and apply ESP
                     for _, egg in ipairs(petEggs) do
-                    if egg:IsA("Model") then
-                        local uuid = egg:GetAttribute("OBJECT_UUID")
-                        local petName
-                        local petKG
-                        local hugeThreshold = 3
-                        local isHuge = false
-                        local isRare = false
+                        if egg:IsA("Model") then
+                            local uuid = egg:GetAttribute("OBJECT_UUID")
+                            local petName = ""
+                            local petKG = ""
+                            local timeToHatch = -1
+                            local hugeThreshold = 3
+                            local isHuge = false
 
-                        for _, eggData in pairs(eggEspData) do 
-                            if uuid == eggData.Uid then
-                                petName = eggData.PetName
-                                petKG = eggData.PetKG
-                            end
-                        end
-
-                        --skip non ready egg
-                        if petKG ~= nil then
-                            if tonumber(petKG) >= hugeThreshold then
-                            isHuge = true
-                        end
-
-                        -- ✅ Clear previous ESP if exists
-                        local old = egg:FindFirstChild("BhubESP")
-                        if old then old:Destroy() end
-                            -- ✅ Create new ESP folder
-                            local espFolder = Instance.new("Folder")
-                            espFolder.Name = "BhubESP"
-                            espFolder.Parent = egg
-
-                            -- ✅ BillboardGui
-                            local billboard = Instance.new("BillboardGui")
-                            billboard.Name = "EggBillboard"
-                            billboard.Adornee = egg
-                            billboard.Size = UDim2.new(0, 150, 0, 40) -- big readable size
-                            billboard.AlwaysOnTop = true
-                            billboard.StudsOffset = Vector3.new(0, 4, 0) -- float above egg
-                            billboard.Parent = espFolder
-
-                            -- ✅ TextLabel inside Billboard
-                            local label = Instance.new("TextLabel")
-                            label.RichText = true
-                            label.BackgroundTransparency = 1
-                            label.Size = UDim2.new(1, 0, 1, 0)
-                            if isHuge then
-                                label.Text = '<font color="rgb(255,0,0)"><b>Paldooo! (' .. petKG .. 'kg)</b></font>\n<font color="rgb(0,255,0)">' .. petName .. '</font>'
-
-                            else
-                                label.Text = '<font color="rgb(0,255,0)">' .. petName .. '</font> = ' .. petKG .. 'kg'
+                            -- Find this egg's data in fresh eggEspData
+                            for _, eggData in pairs(eggEspData) do 
+                                if uuid == eggData.Uid then
+                                    petName = eggData.PetName
+                                    petKG = eggData.PetKG
+                                    timeToHatch = eggData.TimeToHatch
+                                    break
+                                end
                             end
 
-                            label.TextColor3 = Color3.fromRGB(0, 255, 0) -- green
-                            label.TextStrokeTransparency = 0.5
-                            label.TextScaled = false  -- auto resize
-                            label.TextSize = 20
-                            label.Font = Enum.Font.SourceSans
-                            label.Parent = billboard
+                            -- Only show ESP for eggs ready to hatch (timeToHatch == 0)
+                            if timeToHatch == 0 and petKG ~= "" then
+                                if tonumber(petKG) >= hugeThreshold then
+                                    isHuge = true
+                                end
+
+                                -- Clear previous ESP if exists and recreate
+                                local old = egg:FindFirstChild("BhubESP")
+                                if old then old:Destroy() end
+
+                                -- Create new ESP folder
+                                local espFolder = Instance.new("Folder")
+                                espFolder.Name = "BhubESP"
+                                espFolder.Parent = egg
+
+                                -- BillboardGui
+                                local billboard = Instance.new("BillboardGui")
+                                billboard.Name = "EggBillboard"
+                                billboard.Adornee = egg
+                                billboard.Size = UDim2.new(0, 150, 0, 40)
+                                billboard.AlwaysOnTop = true
+                                billboard.StudsOffset = Vector3.new(0, 4, 0)
+                                billboard.Parent = espFolder
+
+                                -- TextLabel inside Billboard
+                                local label = Instance.new("TextLabel")
+                                label.RichText = true
+                                label.BackgroundTransparency = 1
+                                label.Size = UDim2.new(1, 0, 1, 0)
+                                if isHuge then
+                                    label.Text = '<font color="rgb(255,0,0)"><b>PALDO!</b></font>\n<font color="rgb(0,255,0)">' .. petName .. '</font> = ' .. petKG .. 'kg'
+                                else
+                                    label.Text = '<font color="rgb(0,255,0)">' .. petName .. '</font> = ' .. petKG .. 'kg'
+                                end
+
+                                label.TextColor3 = Color3.fromRGB(0, 255, 0)
+                                label.TextStrokeTransparency = 0.5
+                                label.TextScaled = false
+                                label.TextSize = 20
+                                label.Font = Enum.Font.SourceSans
+                                label.Parent = billboard
+                            end
                         end
                     end
-                    end
-                    task.wait(2)
+
+                    task.wait(1)
                 end
                 bhubESPthread = nil
                 beastHubNotify("ESP stopped cleanly", "", 3)
             end)
         end
-    end,
-})
-
---Enable/Disable Egg ESP Buttons
-PetEggs:CreateButton({
-    Name = "Enable BeastHub ESP",
-    Callback = function()
-        Toggle_bhubESP:Set(true)
-        beastHubNotify("BeastHub ESP", "ENABLED", 2)
-    end,
-})
-
-PetEggs:CreateButton({
-    Name = "Disable BeastHub ESP",
-    Callback = function()
-        Toggle_bhubESP:Set(false)
-        beastHubNotify("BeastHub ESP", "DISABLED", 2)
     end,
 })
 
