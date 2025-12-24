@@ -1168,10 +1168,9 @@ local function autoSellPets(targetPets, weightTargetBelow, onComplete)
     end
 
     for _, item in ipairs(backpack:GetChildren()) do
-        if not item:IsA("Tool") then continue end
-
-        local b = item:GetAttribute("b") -- pet type
-        local d = item:GetAttribute("d") -- favorite
+        if item:IsA("Tool") then
+            local b = item:GetAttribute("b") -- pet type
+            local d = item:GetAttribute("d") -- favorite
 
         if b == "l" and d == false then
             local petName = item.Name:match("^(.-)%s*%[") or item.Name
@@ -1208,6 +1207,7 @@ local function autoSellPets(targetPets, weightTargetBelow, onComplete)
                     task.wait(delayToSellPets)
                 end
             end
+        end
         end
     end
 
